@@ -1,0 +1,32 @@
+{
+    "projects": {
+        "441C6BA9-3B3A-4790-0862-4F9E6B4758E3": {
+            "config-debug": {
+                "additionalDependencies": [],
+                "additionalIncludeDirectories": [],
+                "additionalLibraryDirectories": [],
+                "preprocessorDefinitions": []
+            },
+            "config-release": {
+                "additionalDependencies": [],
+                "additionalIncludeDirectories": [],
+                "additionalLibraryDirectories": [],
+                "preprocessorDefinitions": []
+            },
+            "dependencies": [],
+            "dependents": [],
+            "name": "App",
+            "property-lib": false,
+            "property-pch": true,
+            "property-vcpkg": false,
+            "property-window": false
+        }
+    },
+    "projects_name_to_guid": {
+        "App": "441C6BA9-3B3A-4790-0862-4F9E6B4758E3"
+    },
+    "solution_guid": "44672320-6B46-3593-3F5F-3516730E127D",
+    "solution_name": "BMP-Modifier",
+    "startup_project": "",
+    "version": "2.0"
+}
