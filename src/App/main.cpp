@@ -3,6 +3,7 @@
 
 int main()
 {
-    std::cout << "Hello, World!\n";
+    std::cout << "-=-=- Projet BMP-Modifier -=-=-" << std::endl;
+
     return 0;
 }
