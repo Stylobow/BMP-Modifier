@@ -1,7 +1,0 @@
-<Solution>
-  <Configurations>
-    <Platform Name="x64" />
-    <Platform Name="x86" />
-  </Configurations>
-  <Project Path="BMP-Modifier/BMP-Modifier.vcxproj" Id="5466403c-9b41-46e8-9988-5159da7e5d57" />
-</Solution>
