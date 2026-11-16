@@ -149,13 +149,13 @@ FILE* file::CloneFile(const char* dest) {
 
     fseek(srcFile, 0, SEEK_SET);
 
+    std::cout << "Clone success" << destFile << std::endl;
+
     if (fwrite(buffer, 1, size, destFile) != size) {
         fclose(srcFile);
         fclose(destFile);
         return nullptr;
     }
-
-    std::cout << "Clone success" << std::endl;
 
     return destFile;
 }
