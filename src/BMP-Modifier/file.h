@@ -9,7 +9,9 @@ public:
 	BYTE* GetBuffer(const int size);
 	void Write();
 	bool Read(BYTE* buffer, int size, BITMAPFILEHEADER bfh, BITMAPINFOHEADER bih);
-	FILE* CloneFile(const char* dest);
-	bool SwitchColors(const char* dest);
+	FILE* CloneFile(FILE* srcFile, const char* name, BYTE* buffer, int size);
+	bool HasClonedFile(const char* dest);
+	bool SwitchColors(BYTE* buffer, int size);
+	bool HasSwitchedColors(const char* dest);
 };
 

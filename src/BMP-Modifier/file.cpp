@@ -127,17 +127,48 @@ bool file::Read(BYTE* buffer, int size, BITMAPFILEHEADER bfh, BITMAPINFOHEADER b
     return true;
 }
 
-/* Fonction SwitchColors */
-bool file::SwitchColors(const char* dest) {
-
+bool file::HasSwitchedColors(const char* dest) {
     FILE* srcFile = GetFile(dest);
-    if (!srcFile) {
-        std::cout << "Error: Source file not found or cannot be opened." << std::endl;
-        return 0;
+    if (srcFile == nullptr) {
+        std::cout << "An error occurred while opening the image." << std::endl;
+        return false;
     }
 
     int size = GetSize(srcFile);
     BYTE* buffer = GetBuffer(size);
+
+    if (fread(buffer, 1, size, srcFile) != size) {
+        std::cout << "An error occurred while reading the image." << std::endl;
+        fclose(srcFile);
+        delete[] buffer;
+        return false;
+    }
+    fclose(srcFile);
+
+    bool switchColor = this->SwitchColors(buffer, size);
+
+    if (switchColor) {
+        FILE* newFile = nullptr;
+        if (fopen_s(&newFile, "switched.bmp", "wb") == 0 && newFile != nullptr) {
+            fwrite(buffer, 1, size, newFile);
+            fclose(newFile);
+            std::cout << "The colors of the image have been successfully changed." << std::endl;
+        }
+        else {
+            std::cout << "An error occurred while saving the new image." << std::endl;
+            switchColor = false;
+        }
+    }
+    else {
+        std::cout << "An error occurred while changing the colors of the image." << std::endl;
+    }
+
+    delete[] buffer;
+    return switchColor;
+}
+
+/* Fonction SwitchColors */
+bool file::SwitchColors(BYTE* buffer, int size) {
 
     if (!Load(buffer, size)) return false;
 
@@ -181,21 +212,31 @@ bool file::SwitchColors(const char* dest) {
         }
     }
 
-    std::cout << "La changement des couleurs s'est deroule avec succes." << std::endl;
+    return true;
+}
+
+bool file::HasClonedFile(const char* dest) {
+    FILE* srcFile = GetFile(dest);
+    const char* name = dest;
+    int size = GetSize(srcFile);
+    BYTE* buffer = GetBuffer(size);
+
+    FILE* newFile = this->CloneFile(srcFile, name, buffer, size);
+    if (newFile == nullptr) {
+        std::cout << "Error while clonning file." << std::endl;
+        return false;
+    }
+    delete[] buffer;
 
     return true;
 }
 
 /* Fonction CloneFile */
-FILE* file::CloneFile(const char* dest) {
-    FILE* srcFile = GetFile(dest);
-    if (!srcFile) {
+FILE* file::CloneFile(FILE* srcFile, const char* name, BYTE* buffer, int size) {
+    if (srcFile == nullptr) {
         std::cout << "Error: Source file not found or cannot be opened." << std::endl;
         return nullptr;
     }
-
-    int size = GetSize(srcFile);
-    BYTE* buffer = GetBuffer(size);
 
     if (!CheckFile(buffer, size)) {
         fclose(srcFile);
