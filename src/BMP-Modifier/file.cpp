@@ -127,6 +127,65 @@ bool file::Read(BYTE* buffer, int size, BITMAPFILEHEADER bfh, BITMAPINFOHEADER b
     return true;
 }
 
+/* Fonction SwitchColors */
+bool file::SwitchColors(const char* dest) {
+
+    FILE* srcFile = GetFile(dest);
+    if (!srcFile) {
+        std::cout << "Error: Source file not found or cannot be opened." << std::endl;
+        return 0;
+    }
+
+    int size = GetSize(srcFile);
+    BYTE* buffer = GetBuffer(size);
+
+    if (!Load(buffer, size)) return false;
+
+    byte* src = buffer;
+
+    BITMAPFILEHEADER bfh;
+    memcpy(&bfh, src, sizeof(BITMAPFILEHEADER));
+    src += sizeof(BITMAPFILEHEADER);
+    if (bfh.bfType != 0x4D42)
+        return false;
+
+    BITMAPINFOHEADER bih;
+    memcpy(&bih, src, sizeof(BITMAPINFOHEADER));
+    src += sizeof(BITMAPINFOHEADER);
+    if (bih.biBitCount != 24)
+        return false;
+
+    byte* pixelData = buffer + bfh.bfOffBits;
+    int width = bih.biWidth;
+    int height = abs(bih.biHeight);
+
+    int bytesPerRow = width * 3;
+    int padding = (4 - (bytesPerRow % 4)) % 4;
+    int rowSize = bytesPerRow + padding;
+
+    for (int x = 0; x < width; x++) {
+        byte* rowPixel = pixelData + x * rowSize;
+
+        for (int y = 0; y < height; y++) {
+            byte* bluePixel = &rowPixel[y * 3 + 0];
+            byte* greenPixel = &rowPixel[y * 3 + 1];
+            byte* redPixel = &rowPixel[y * 3 + 2];
+
+            byte blueTemp = *bluePixel;
+            byte greenTemp = *greenPixel;
+            byte redTemp = *redPixel;
+
+            *bluePixel = greenTemp;
+            *greenPixel = redTemp;
+            *redPixel = blueTemp;
+        }
+    }
+
+    std::cout << "La changement des couleurs s'est deroule avec succes." << std::endl;
+
+    return true;
+}
+
 /* Fonction CloneFile */
 FILE* file::CloneFile(const char* dest) {
     FILE* srcFile = GetFile(dest);

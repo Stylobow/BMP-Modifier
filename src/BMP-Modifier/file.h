@@ -10,5 +10,6 @@ public:
 	void Write();
 	bool Read(BYTE* buffer, int size, BITMAPFILEHEADER bfh, BITMAPINFOHEADER bih);
 	FILE* CloneFile(const char* dest);
+	bool SwitchColors(const char* dest);
 };
 
