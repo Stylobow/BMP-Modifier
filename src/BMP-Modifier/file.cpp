@@ -27,7 +27,9 @@ bool file::Load(BYTE *buffer, int size) {
 	BITMAPINFOHEADER bih;
 
 	// Vérifie si le buffer ou la size est vide.
-	CheckFile(buffer, size);
+	if (!CheckFile(buffer, size)) {
+		return false;
+	}
 
 	// Copie du buffer.
 	BYTE* src = buffer;
@@ -80,7 +82,9 @@ Fonction Read
 
 bool file::Read(BYTE* buffer, int size, BITMAPFILEHEADER bfh, BITMAPINFOHEADER bih) {
 	// Vérifie si le buffer ou la size est vide.
-	CheckFile(buffer, size);
+	if (!CheckFile(buffer, size)) {
+		return false;
+	}
 
 	BYTE* pixelData = buffer + bfh.bfOffBits;
 
@@ -117,4 +121,37 @@ bool file::Read(BYTE* buffer, int size, BITMAPFILEHEADER bfh, BITMAPINFOHEADER b
 	}
 
 	return true;
+}
+
+/*
+
+	Fonction CloneFile
+
+*/
+
+FILE* CloneFile(FILE* srcFile, const char* name, BYTE* buffer, int size) {
+	FILE* destFile = nullptr;
+
+	if (CheckFile(buffer, size)) {
+		return destFile;
+	}
+
+	errno_t err = fopen_s(&destFile, name, "wb");
+
+	if (err != 0) {
+		std::cout << "Error, Failed to clone file, error code : " << err << std::endl;
+		return destFile;
+	}
+
+	fseek(srcFile, 0, SEEK_SET);
+
+	if (fwrite(buffer, 1, size, destFile) != size) {
+		fclose(srcFile);
+		fclose(destFile);
+		return nullptr;
+	}
+
+	std::cout << "Clone sucess" << std::endl;
+
+	return destFile;
 }
