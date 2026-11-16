@@ -1,157 +1,126 @@
 #include "pch.h"
 #include "file.h"
+#include <iostream>
 
-/*
-
-	Fonction CheckFile
-
-*/
-
-bool CheckFile(BYTE* buffer, int size) {
-	if (buffer == nullptr || size == 0) {
-		return false;
-	}
-
-	return true;
+/* Fonction CheckFile */
+bool file::CheckFile(BYTE* buffer, int size) {
+    if (buffer == nullptr || size == 0) {
+        return false;
+    }
+    return true;
 }
 
-/* 
+/* Fonction Load */
+bool file::Load(BYTE* buffer, int size) {
+    // Initialisation des Header BMP.
+    BITMAPFILEHEADER bfh;
+    BITMAPINFOHEADER bih;
 
-	Fonction Load
+    // Vérifie si le buffer ou la size est vide.
+    if (!CheckFile(buffer, size)) {
+        return false;
+    }
 
-*/
+    // Copie du buffer.
+    BYTE* src = buffer;
 
-bool file::Load(BYTE *buffer, int size) {
-	// Initialisation des Header BMP.
-	BITMAPFILEHEADER bfh;
-	BITMAPINFOHEADER bih;
+    /* Bloc BITMAP FILE HEADER */
+    memcpy(&bfh, src, sizeof(BITMAPFILEHEADER));
+    src += sizeof(BITMAPFILEHEADER);
 
-	// Vérifie si le buffer ou la size est vide.
-	if (!CheckFile(buffer, size)) {
-		return false;
-	}
+    // Vérifie si l'image correspond bien a une signature BM
+    if (bfh.bfType != 0x4D42) {
+        return false;
+    }
 
-	// Copie du buffer.
-	BYTE* src = buffer;
+    /* Bloc BITMAP INFO HEADER */
+    memcpy(&bih, src, sizeof(BITMAPINFOHEADER));
+    src = buffer + bfh.bfOffBits;
 
-	/*
-	
-		Bloc BITMAP FILE HEADER
+    // Vérifie si le nombre de bit est bien égal au format du BMP.
+    if (bih.biBitCount != 24) {
+        return false;
+    }
 
-	*/
+    // Récupération des informations Hauteur et Largeur.
+    int width = bih.biWidth;
+    int height = abs(bih.biHeight);
 
-	// Copie de la mémoire avec la taille du File Header en l'intégrant dans la var src.
-	memcpy(&bfh, src, sizeof(BITMAPFILEHEADER));
-	src += sizeof(BITMAPFILEHEADER);
+    // Vérifie si le fichier n'est pas nul.
+    if (width == 0 || height == 0) {
+        return false;
+    }
 
-	// Vérifie si l'image correspond bien a une signature BM
-	if (bfh.bfType != 0x4D42) {
-		return false;
-	}
-
-	/*
-	
-		Bloc BITMAP INFO HEADER
-	
-	*/
-
-	// Copie de la mémoire avec la taille du Info Header en l'intégrant dans la var src.
-	memcpy(&bih, src, sizeof(BITMAPINFOHEADER));
-	src = buffer + bfh.bfOffBits;
-
-	// Vérfie si le nombre de bit est bien égal au format du BMP.
-	if (bih.biBitCount != 24) {
-		return false;
-	}
-
-	// Récupération des information Hauteur et Largeur.
-	int width = bih.biWidth;
-	int height = abs(bih.biHeight);
-
-	// Vérifie si le fichier n'est pas nul.
-	if (width == 0 || height == 0) {
-		return 0;
-	}
+    return true;
 }
 
-/*
-
-Fonction Read
-
-*/
-
+/* Fonction Read */
 bool file::Read(BYTE* buffer, int size, BITMAPFILEHEADER bfh, BITMAPINFOHEADER bih) {
-	// Vérifie si le buffer ou la size est vide.
-	if (!CheckFile(buffer, size)) {
-		return false;
-	}
+    // Vérifie si le buffer ou la size est vide.
+    if (!CheckFile(buffer, size)) {
+        return false;
+    }
 
-	BYTE* pixelData = buffer + bfh.bfOffBits;
+    BYTE* pixelData = buffer + bfh.bfOffBits;
 
-	// Récupération des information Hauteur et Largeur.
-	int width = bih.biWidth;
-	int height = abs(bih.biHeight);
+    // Récupération des informations Hauteur et Largeur.
+    int width = bih.biWidth;
+    int height = abs(bih.biHeight);
 
-	// Vérifie si le fichier n'est pas nul.
-	if (width == 0 || height == 0) {
-		return false;
-	}
+    if (width == 0 || height == 0) {
+        return false;
+    }
 
-	// Nombre de Bit par ligne
-	int bytesPerRow = width * 3;
-	// Padding
-	int padding = (4 - (bytesPerRow % 4)) % 4;
-	// Taille de la ligne
-	int rowSize = bytesPerRow + padding;
+    // Nombre de Bytes par ligne
+    int bytesPerRow = width * 3;
+    // Padding
+    int padding = (4 - (bytesPerRow % 4)) % 4;
+    // Taille de la ligne
+    int rowSize = bytesPerRow + padding;
 
-	// Double boucle for imbriqué afin de parcourir la hauteur et la largeur de l'image.
-	for (int x = 0; x <= width; x++) {
-		BYTE* rowPixel = pixelData + x * rowSize;
+    // Double boucle pour parcourir la hauteur (y) et la largeur (x).
+    for (int y = 0; y < height; y++) {
+        BYTE* rowPixel = pixelData + y * rowSize;
 
-		for (int y = 0; y <= height; y++) {
-			BYTE bluePixel = static_cast<BYTE>(rowPixel[y * 3 + 0]);
-			BYTE greenPixel = static_cast<BYTE>(rowPixel[y * 3 + 1]);
-			BYTE redPixel = static_cast<BYTE>(rowPixel[y * 3 + 2]);
+        for (int x = 0; x < width; x++) {
+            BYTE bluePixel = static_cast<BYTE>(rowPixel[x * 3 + 0]);
+            BYTE greenPixel = static_cast<BYTE>(rowPixel[x * 3 + 1]);
+            BYTE redPixel = static_cast<BYTE>(rowPixel[x * 3 + 2]);
 
-			std::cout << "Pixel (" << x << ", " << y << ") : "
-				<< "R= " << static_cast<int>(redPixel) << " "
-				<< "G= " << static_cast<int>(greenPixel) << " "
-				<< "B= " << static_cast<int>(bluePixel) << "\n";
-		}
-	}
+            std::cout << "Pixel (" << x << ", " << y << ") : "
+                << "R= " << static_cast<int>(redPixel) << " "
+                << "G= " << static_cast<int>(greenPixel) << " "
+                << "B= " << static_cast<int>(bluePixel) << "\n";
+        }
+    }
 
-	return true;
+    return true;
 }
 
-/*
+/* Fonction CloneFile */
+FILE* file::CloneFile(FILE* srcFile, const char* name, BYTE* buffer, int size) {
+    FILE* destFile = nullptr;
 
-	Fonction CloneFile
+    if (!CheckFile(buffer, size)) {
+        return destFile;
+    }
 
-*/
+    errno_t err = fopen_s(&destFile, name, "wb");
 
-FILE* CloneFile(FILE* srcFile, const char* name, BYTE* buffer, int size) {
-	FILE* destFile = nullptr;
+    if (err != 0) {
+        std::cout << "Error, Failed to clone file, error code : " << err << std::endl;
+        return destFile;
+    }
 
-	if (CheckFile(buffer, size)) {
-		return destFile;
-	}
+    fseek(srcFile, 0, SEEK_SET);
 
-	errno_t err = fopen_s(&destFile, name, "wb");
+    if (fwrite(buffer, 1, size, destFile) != (size_t)size) {
+        fclose(srcFile);
+        fclose(destFile);
+        return nullptr;
+    }
 
-	if (err != 0) {
-		std::cout << "Error, Failed to clone file, error code : " << err << std::endl;
-		return destFile;
-	}
+    std::cout << "Clone success" << std::endl;
 
-	fseek(srcFile, 0, SEEK_SET);
-
-	if (fwrite(buffer, 1, size, destFile) != size) {
-		fclose(srcFile);
-		fclose(destFile);
-		return nullptr;
-	}
-
-	std::cout << "Clone sucess" << std::endl;
-
-	return destFile;
+    return destFile;
 }
