@@ -1,5 +1,6 @@
 #include "pch.h"
 #include "main.h"
+#include "file.h"
 
 #define HELP_END "\n" \
     "[]  Required Argument"                                                                                        "\n"\
@@ -12,6 +13,7 @@
     "|                                                                                                             |\n"\
     "|  -help ( -h )                                                                                               |\n"\
     "|                                                                                                             |\n"\
+    "|  -clone ( -c )                                                                                              |\n"\
     "+-------------------------------------------------------------------------------------------------------------+\n" HELP_END SG_STYLE_RESET
 
 #define SG_STYLE( style ) "\033[" style "m"
@@ -33,6 +35,7 @@ int main(int argc, char* argv[])
 {
 // argc -> Nombre d'arguments
 // argv -> List d'arguments
+    file fm;
 
     const char prefix = '-'; // Prefix a utiliser pour les commandes
 
@@ -45,6 +48,7 @@ int main(int argc, char* argv[])
     std::string const& command = argv[1] + 1;
 
     if (command == "help" || command == "h") return Help(argc, argv);
+    if (command == "clone" || command == "c") return 0; // Commande pas encore disponible
 
     return 0;
 }
