@@ -215,71 +215,60 @@ bool file::SwitchColors(BYTE* buffer, int size) {
     return true;
 }
 
+/* HasClonedFile */
 bool file::HasClonedFile(const char* dest) {
     FILE* srcFile = GetFile(dest);
-    const char* name = dest;
+    if (srcFile == nullptr) {
+        std::cout << "Error: Source file not found or cannot be opened." << std::endl;
+        return false;
+    }
+
     int size = GetSize(srcFile);
     BYTE* buffer = GetBuffer(size);
 
-    FILE* newFile = this->CloneFile(srcFile, name, buffer, size);
-    if (newFile == nullptr) {
-        std::cout << "Error while clonning file." << std::endl;
+    bool success = this->CloneFile(srcFile, dest, buffer, size);
+
+    fclose(srcFile);
+    delete[] buffer;
+
+    if (!success) {
+        std::cout << "Error while cloning file." << std::endl;
         return false;
     }
-    delete[] buffer;
 
     return true;
 }
 
 /* Fonction CloneFile */
 FILE* file::CloneFile(FILE* srcFile, const char* name, BYTE* buffer, int size) {
-    if (srcFile == nullptr) {
-        std::cout << "Error: Source file not found or cannot be opened." << std::endl;
+    if (srcFile == nullptr || !CheckFile(buffer, size)) {
         return nullptr;
     }
 
-    if (!CheckFile(buffer, size)) {
-        fclose(srcFile);
-        delete[] buffer;
+    if (fread(buffer, 1, size, srcFile) != size) {
+        std::cout << "Error reading source file." << std::endl;
+        return nullptr;
+    }
+
+    if (!file::Load(buffer, size)) {
+        std::cout << "Error reading the image. Check its format and color depth, which must be 24." << std::endl;
         return nullptr;
     }
 
     FILE* destFile = nullptr;
     errno_t err = fopen_s(&destFile, "clone.bmp", "wb");
-
     if (err != 0 || destFile == nullptr) {
         std::cout << "Error, Failed to clone file, error code : " << err << std::endl;
-        fclose(srcFile);
-        delete[] buffer;
         return nullptr;
     }
-
-    fread(buffer, 1, size, srcFile);
-
-    bool imageLoaded = file::Load(buffer, size);
-    if (!imageLoaded) {
-        std::cout << "Error reading the image. Check its format and color depth, which must be 24." << std::endl;
-        fclose(srcFile);
-        fclose(destFile);
-        delete[] buffer;
-        return nullptr;
-    }
-
-    fseek(srcFile, 0, SEEK_SET);
 
     if (fwrite(buffer, 1, size, destFile) != size) {
         std::cout << "Error: Failed to write complete file." << std::endl;
-        fclose(srcFile);
         fclose(destFile);
-        delete[] buffer;
         return nullptr;
     }
 
-    fclose(srcFile);
     fclose(destFile);
-    delete[] buffer;
-
     std::cout << "Clone success! File saved as 'clone.bmp'." << std::endl;
-
     return destFile;
 }
