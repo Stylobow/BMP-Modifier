@@ -10,6 +10,36 @@ bool file::CheckFile(BYTE* buffer, int size) {
     return true;
 }
 
+/* Fonction GetFile */
+FILE* GetFile(const char* dest) {
+    FILE* file = nullptr;
+
+    errno_t err = fopen_s(&file, dest, "rb");
+
+    if (err != 0) {
+        std::cout << "Error code : " << err << std::endl;
+        return 0;
+    }
+
+    return file;
+}
+
+/* Fonction GetSize */
+const int GetSize(FILE* file) {
+    fseek(file, 0, SEEK_END);
+    const int size = ftell(file);
+    fseek(file, 0, SEEK_SET);
+
+    return size;
+}
+
+/* Fonction GetBuffer */
+BYTE* GetBuffer(const int size) {
+    BYTE* buffer = new BYTE[size];
+
+    return buffer;
+}
+
 /* Fonction Load */
 bool file::Load(BYTE* buffer, int size) {
     // Initialisation des Header BMP.
@@ -98,14 +128,19 @@ bool file::Read(BYTE* buffer, int size, BITMAPFILEHEADER bfh, BITMAPINFOHEADER b
 }
 
 /* Fonction CloneFile */
-FILE* file::CloneFile(FILE* srcFile, const char* name, BYTE* buffer, int size) {
+FILE* file::CloneFile(const char* dest) {
+
+    FILE* srcFile = GetFile(dest);
+    int size = GetSize(srcFile);
+    BYTE* buffer = GetBuffer(size);
+
     FILE* destFile = nullptr;
 
     if (!CheckFile(buffer, size)) {
         return destFile;
     }
 
-    errno_t err = fopen_s(&destFile, name, "wb");
+    errno_t err = fopen_s(&destFile, "clone.bmp", "wb");
 
     if (err != 0) {
         std::cout << "Error, Failed to clone file, error code : " << err << std::endl;
