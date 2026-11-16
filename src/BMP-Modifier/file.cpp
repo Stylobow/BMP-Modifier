@@ -129,33 +129,57 @@ bool file::Read(BYTE* buffer, int size, BITMAPFILEHEADER bfh, BITMAPINFOHEADER b
 
 /* Fonction CloneFile */
 FILE* file::CloneFile(const char* dest) {
-
     FILE* srcFile = GetFile(dest);
+    if (!srcFile) {
+        std::cout << "Error: Source file not found or cannot be opened." << std::endl;
+        return nullptr;
+    }
+
     int size = GetSize(srcFile);
     BYTE* buffer = GetBuffer(size);
 
-    FILE* destFile = nullptr;
-
     if (!CheckFile(buffer, size)) {
-        return destFile;
+        fclose(srcFile);
+        delete[] buffer;
+        return nullptr;
     }
 
+    FILE* destFile = nullptr;
     errno_t err = fopen_s(&destFile, "clone.bmp", "wb");
 
-    if (err != 0) {
+    if (err != 0 || destFile == nullptr) {
         std::cout << "Error, Failed to clone file, error code : " << err << std::endl;
-        return destFile;
+        fclose(srcFile);
+        delete[] buffer;
+        return nullptr;
+    }
+
+    fread(buffer, 1, size, srcFile);
+
+    bool imageLoaded = file::Load(buffer, size);
+    if (!imageLoaded) {
+        std::cout << "Error reading the image. Check its format and color depth, which must be 24." << std::endl;
+        fclose(srcFile);
+        fclose(destFile);
+        delete[] buffer;
+        return nullptr;
     }
 
     fseek(srcFile, 0, SEEK_SET);
 
-    std::cout << "Clone success" << destFile << std::endl;
-
     if (fwrite(buffer, 1, size, destFile) != size) {
+        std::cout << "Error: Failed to write complete file." << std::endl;
         fclose(srcFile);
         fclose(destFile);
+        delete[] buffer;
         return nullptr;
     }
+
+    fclose(srcFile);
+    fclose(destFile);
+    delete[] buffer;
+
+    std::cout << "Clone success! File saved as 'clone.bmp'." << std::endl;
 
     return destFile;
 }
