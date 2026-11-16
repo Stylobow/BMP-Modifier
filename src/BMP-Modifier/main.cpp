@@ -12,8 +12,8 @@
     "+-------------------------------------------------------------------------------------------------------------+\n"\
     "|                                                                                                             |\n"\
     "|  -help ( -h )                                                                                               |\n"\
+    "|  -clone [File]                                                                                              |\n"\
     "|                                                                                                             |\n"\
-    "|  -clone ( -c )                                                                                              |\n"\
     "+-------------------------------------------------------------------------------------------------------------+\n" HELP_END SG_STYLE_RESET
 
 #define SG_STYLE( style ) "\033[" style "m"
@@ -48,7 +48,16 @@ int main(int argc, char* argv[])
     std::string const& command = argv[1] + 1;
 
     if (command == "help" || command == "h") return Help(argc, argv);
-    if (command == "clone" || command == "c") return 0; // Commande pas encore disponible
+    if (command == "clone" || command == "c") {
+        if (argc < 3) {
+            PRINT_ERROR("File Directory is missing! Please use '" << prefix << "clone [File]'");
+        }
+
+        const char* file_path = argv[2];
+
+        std::cout << "Chemin du fichier : " << file_path << std::endl;
+        fm.CloneFile(file_path);
+    }
 
     return 0;
 }

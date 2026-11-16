@@ -11,7 +11,7 @@ bool file::CheckFile(BYTE* buffer, int size) {
 }
 
 /* Fonction GetFile */
-FILE* GetFile(const char* dest) {
+FILE* file::GetFile(const char* dest) {
     FILE* file = nullptr;
 
     errno_t err = fopen_s(&file, dest, "rb");
@@ -25,7 +25,7 @@ FILE* GetFile(const char* dest) {
 }
 
 /* Fonction GetSize */
-const int GetSize(FILE* file) {
+const int file::GetSize(FILE* file) {
     fseek(file, 0, SEEK_END);
     const int size = ftell(file);
     fseek(file, 0, SEEK_SET);
@@ -34,7 +34,7 @@ const int GetSize(FILE* file) {
 }
 
 /* Fonction GetBuffer */
-BYTE* GetBuffer(const int size) {
+BYTE* file::GetBuffer(const int size) {
     BYTE* buffer = new BYTE[size];
 
     return buffer;
@@ -149,7 +149,7 @@ FILE* file::CloneFile(const char* dest) {
 
     fseek(srcFile, 0, SEEK_SET);
 
-    if (fwrite(buffer, 1, size, destFile) != (size_t)size) {
+    if (fwrite(buffer, 1, size, destFile) != size) {
         fclose(srcFile);
         fclose(destFile);
         return nullptr;
