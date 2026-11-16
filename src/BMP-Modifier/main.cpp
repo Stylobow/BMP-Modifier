@@ -1,27 +1,50 @@
 #include "pch.h"
 #include "main.h"
 
-/*
-Liste d'arguments : 
-    -help ( -h ) : Donne la liste de tout les arguments et comment les utiliser.
-*/
+#define HELP_END "\n" \
+    "[]  Required Argument"                                                                                        "\n"\
+    "<>  Optional Argument"                                                                                        "\n"\
+    "{}  Repeatable Argument"                                                                                      "\n"
+
+#define HELP_MESSAGE \
+    "Available Commands :"                                                                                         "\n"\
+    "+-------------------------------------------------------------------------------------------------------------+\n"\
+    "|                                                                                                             |\n"\
+    "|  -help ( -h )                                                                                               |\n"\
+    "|                                                                                                             |\n"\
+    "+-------------------------------------------------------------------------------------------------------------+\n" HELP_END SG_STYLE_RESET
+
+#define SG_STYLE( style ) "\033[" style "m"
+#define SG_STYLE_RESET      SG_STYLE( "0" )
+#define STYLE_ERROR      SG_STYLE( "31" )
+
+#define PRINT_ERROR( message ) { std::cout << STYLE_ERROR message "\n" SG_STYLE_RESET; return 1; }
+
+int Help(int argc, char* argv[]) {
+    if (argc == 2) {
+        std::cout << HELP_MESSAGE;
+        return 0;
+    }
+
+    return 0;
+}
 
 int main(int argc, char* argv[])
+{
 // argc -> Nombre d'arguments
 // argv -> List d'arguments
 
-{
-    if (argc < 2) {
-        std::cout << "Aucun argument. Veuillez mettre un argument '-help' pour obtenir la liste des arguments." << std::endl;
-        system("pause"); // Evite de fermer le programme instantanément
-        return 0; // Si la liste d'arguments est vide, on ferme le programme (sécurité)
-    }
-    std::cout << "-=-=- Projet BMP-Modifier (x64 Debug Mode) -=-=-" << std::endl;
-    std::cout << "Nombre d'arguments: (argc) -> " << argc << std::endl;
+    const char prefix = '-'; // Prefix a utiliser pour les commandes
 
-    if (std::string(argv[1]) == "-help" || std::string(argv[1]) == "-h") { // Si le premier argument est "-help" ou "-h"
-        std::cout << "Argument help appele." << std::endl;
-    }
+    std::cout << "-=-=- Projet BMP-Modifier (x64 Debug Mode) -=-=-" << std::endl << std::endl;
+
+    if (argc == 1) PRINT_ERROR("Not enough arguments"); // Si aucun argument est donné.
+
+    if (argv[1][0] != prefix) PRINT_ERROR("Commands starts with '" << prefix << "\'");
+
+    std::string const& command = argv[1] + 1;
+
+    if (command == "help" || command == "h") return Help(argc, argv);
 
     return 0;
 }
