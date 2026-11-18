@@ -312,6 +312,7 @@ bool file::Resize(const char* dest, int newWidth, int newHeight) {
 		return false;
 	}
 
+	// Copie de buffer.
 	BYTE* src = buffer;
 	BITMAPFILEHEADER bfh;
 	memcpy(&bfh, src, sizeof(BITMAPFILEHEADER));
@@ -343,7 +344,12 @@ bool file::Resize(const char* dest, int newWidth, int newHeight) {
 	BITMAPINFOHEADER newBih = bih;
 
 	newBih.biWidth = newWidth;
-	newBih.biHeight = (bih.biHeight < 0) ? -newHeight : newHeight;
+	if (bih.biHeight < 0) {
+		newBih.biHeight = -newHeight;
+	}
+	else {
+		newBih.biHeight = newHeight;
+	}
 	newBih.biSizeImage = newPixelDataSize;
 	newBfh.bfSize = newTotalSize;
 	newBfh.bfOffBits = headerSize;
