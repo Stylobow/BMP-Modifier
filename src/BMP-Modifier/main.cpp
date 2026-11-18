@@ -82,7 +82,7 @@ int main(int argc, char* argv[])
 
 		std::cout << message << std::endl;
 
-		return 0;
+		return fm.IsHiddenMessage(file_path, message);
 	}
 	if (command == "resize" || command == "r") {
 		const char* file_path = argv[2];
