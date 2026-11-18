@@ -85,9 +85,18 @@ int main(int argc, char* argv[])
 		return fm.IsHiddenMessage(file_path, message);
 	}
 	if (command == "resize" || command == "r") {
+		if (argc < 3)
+			PRINT_ERROR("File Directory is missing! Please use '" << prefix << "resize [File] [Width] [Height]'");
+		if (argc < 4)
+			PRINT_ERROR("Width value is missing! Please use '" << prefix << "resize [File] [Width] [Height]'");
+		if (argc < 5)
+			PRINT_ERROR("Height value is missing! Please use '" << prefix << "resize [File] [Width] [Height]'");
+
 		const char* file_path = argv[2];
-		int width = argv[3];
-		int height = argv[4];
+		int width = atoi(argv[3]);
+		int height = atoi(argv[4]);
+
+		return fm.Resize(file_path, width, height);
 	}
 
 	PRINT_ERROR(<< command << " is not a valid command");
