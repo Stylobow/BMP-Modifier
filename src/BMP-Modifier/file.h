@@ -16,5 +16,6 @@ public:
 	bool Resize(const char* dest, int newWidth, int newHeight);
 	bool HideMessage(BYTE* buffer, int size, const char* hiddenMessage);
 	bool IsHiddenMessage(const char* dest, const char* hiddenMessage);
+	char* GetBinaryMessage(char* message);
 };
 

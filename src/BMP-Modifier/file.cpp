@@ -459,3 +459,26 @@ bool file::IsHiddenMessage(const char* dest, const char* hiddenMessage) {
 	delete[] buffer;
 	return success;
 }
+
+char* file::GetBinaryMessage(char* message) {
+	int messageLength = this->StrLength(message);
+
+	int totalBits = (messageLength + 1) * 8;
+
+	char* result = new char[totalBits + 1];
+	int index = 0;
+
+	for (int i = 0; i <= messageLength; i++) {
+		char character = message[i];
+
+		for (int bit = 7; bit >= 0; bit--) {
+			result[index++] = ((character >> bit) & 1) + '0';
+		}
+	}
+
+	result[index] = '\0';
+	std::cout << "The message was put into binary." << std::endl;
+	std::cout << "Binary message: [" << result << "]" << std::endl;
+
+	return result;
+}
