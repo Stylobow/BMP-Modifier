@@ -281,9 +281,100 @@ bool file::Resize(const char* dest, int newWidth, int newHeight) {
 
     FILE* srcFile = GetFile(dest);
     if (srcFile == nullptr) {
-        std::cout << "Probleme lors de l'ouverture du fichier \n\n";
+        std::cout << "Probleme lors de l'ouverture du fichier \n";
         return false;
     }
 
+    int size = GetSize(srcFile);
+    BYTE* buffer = GetBuffer(size);
+
+    if (fread(buffer, 1, size, srcFile) != srcFile) {
+        std::cout << "an error ocurred\n";
+        delete[] buffer;
+        return false;
+    }
+    fclose(srcFile);
+
+    if (!Load(buffer, size)) {
+        std::cout << "an error ocurred\n";
+        delete[] buffer;
+        return false;
+    }
+
+    BYTE* src = buffer;
+    BITMAPFILEHEADER bfh;
+    memcpy(&bfh, src, sizeof(BITMAPFILEHEADER));
+    src += sizeof(BITMAPFILEHEADER);
+
+    BITMAPINFOHEADER bih;
+    memcpy(&bih, src, sizeof(BITMAPINFOHEADER));
+    src += sizeof(BITMAPINFOHEADER);
+
+    int oldWidth = bih.biWidth;
+    int oldHeight = abs(bih.biHeight);
+
+    int oldBytesPerRow = oldWidth * 3;
+    int oldPadding = (4 - (oldBytesPerRow % 4)) % 4;
+    int oldRowSize = oldBytesPerRow + oldPadding;
+
+    int newBytesPerRow = newWidth * 3;
+    int newPadding = (4 - (newBytesPerRow % 4)) % 4;
+    int newRowSize = newBytesPerRow + newPadding;
+
+    int newPixelDataSize = newRowSize * newHeight;
+    int headerSize = sizeof(BITMAPFILEHEADER) + sizeof(BITMAPINFOHEADER);
+    int newTotalSize = headerSize + newPixelDataSize;
+
+    BYTE* newBuffer = new BYTE[newTotalSize];
+    memset(newBuffer, 0, newTotalSize);
+
+    BITMAPFILEHEADER newBfh = bfh;
+    BITMAPINFOHEADER newBih = bih;
+
+    newBih.biWidth = newWidth;
+    newBih.biHeight = (bih.biHeight < 0) ? -newHeight : newHeight;
+    newBih.biSizeImage = newPixelDataSize;
+    newBfh.bfSize = newTotalSize;
+    newBfh.bfOffBits = headerSize;
+
+    memcpy(newBuffer, &newBfh, sizeof(BITMAPFILEHEADER));
+    memcpy(newBuffer + sizeof(BITMAPFILEHEADER), &newBih, sizeof(BITMAPINFOHEADER));
+
+    BYTE* oldPixelData = buffer + bfh.bfOffBits;
+    BYTE* newPixelData = newBuffer + newBfh.bfOffBits;
+
+    for (int y = 0; y < newHeight; y++) {
+        int oldY = y * oldHeight / newHeight;
+        BYTE* newRow = newPixelData + y * newRowSize;
+        BYTE* oldRow = oldPixelData + oldY * oldRowSize;
+
+        for (int x = 0; x < newWidth; x++) {
+            int oldX = x * oldWidth / newWidth;
+
+            BYTE* newPixel = &newRow[x * 3];
+            BYTE* oldPixel = &oldRow[oldX * 3];
+
+            newPixel[0] = oldPixel[0]; // Blue
+            newPixel[1] = oldPixel[1]; // Green
+            newPixel[2] = oldPixel[2]; // Red
+        }
+    }
+
+    FILE* newFile = nullptr;
+    errno_t err = fopen_s(&newFile, "resized.bmp", "wb");
+    if (err == 0 && newFile != nullptr) {
+        fwrite(newBuffer, 1, newTotalSize, newFile);
+        fclose(newFile);
+        std::cout << "The image has been successfully resized and saved as 'resized.bmp'." << std::endl;
+    }
+    else {
+        std::cout << "An error occurred while saving the new resized image." << std::endl;
+        delete[] buffer;
+        delete[] newBuffer;
+        return false;
+    }
+
+    delete[] buffer;
+    delete[] newBuffer;
     return true;
 }
