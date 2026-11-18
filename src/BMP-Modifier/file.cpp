@@ -20,9 +20,6 @@ bool file::CheckFile(BYTE* buffer, int size) {
 
 /* Fonction CheckSize */
 bool file::CheckSize(int width, int height) {
-	if (!CheckSize(width, height)) {
-		return false;
-	}
 
 	return true;
 }
@@ -430,12 +427,21 @@ bool file::HideMessage(BYTE* buffer, int size, const char* hiddenMessage) {
 	int padding = (4 - (bytesPerRow % 4)) % 4;
 	int rowSize = bytesPerRow + padding;
 
-	int pixelDataSize = rowSize * height;
-	int messageLength = StrLength(hiddenMessage);
+	int msgBinaryLength = this->StrLength(this->GetBinaryMessage(hiddenMessage));
 
-	std::cout << messageLength << std::endl;
+	for (int x = 0; x < width; x++) {
+		byte* rowPixel = pixelData + x * rowSize;
 
-	return false;
+		for (int y = 0; y < height; y++) {
+			byte* redPixel = &rowPixel[y * 3 + 2];
+
+			for (int bit = 0; bit < msgBinaryLength; bit++) {
+
+			}
+		}
+	}
+
+	return true;
 }
 
 /* Fonction IsHideMessage */
@@ -479,7 +485,7 @@ bool file::IsHiddenMessage(const char* dest, const char* hiddenMessage) {
 	return success;
 }
 
-char* file::GetBinaryMessage(char* message) {
+const char* file::GetBinaryMessage(const char* message) {
 	int messageLength = this->StrLength(message);
 
 	int totalBits = (messageLength + 1) * 8;

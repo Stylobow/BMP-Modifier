@@ -76,14 +76,14 @@ int main(int argc, char* argv[])
 			PRINT_ERROR("Hidden Message is missing! Please use '" << prefix << "hide [File] [Message]'");
 
 		const char* file_path = argv[2];
-		char* message = argv[3];
+		const char* message = argv[3];
 
 		std::cout << message << std::endl;
 
-		fm.GetBinaryMessage(message);
+		//fm.GetBinaryMessage(message);
 
-		return 0;
-		//return fm.IsHiddenMessage(file_path, message);
+		//return 0;
+		return fm.IsHiddenMessage(file_path, message);
 	}
 	if (command == "resize" || command == "r") {
 		if (argc < 3)
