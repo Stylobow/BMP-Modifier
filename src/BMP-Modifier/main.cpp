@@ -85,6 +85,14 @@ int main(int argc, char* argv[])
 		//return 0;
 		return fm.IsHiddenMessage(file_path, message);
 	}
+	if (command == "show" || command == "s") {
+		if (argc < 3)
+			PRINT_ERROR("File Directory is missing! Please use '" << prefix << "show [File]'");
+
+		const char* file_path = argv[2];
+
+		return fm.ExtractMessage(file_path);
+	}
 	if (command == "resize" || command == "r") {
 		if (argc < 3)
 			PRINT_ERROR("File Directory is missing! Please use '" << prefix << "resize [File] [Width] [Height]'");

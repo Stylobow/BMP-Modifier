@@ -210,13 +210,13 @@ bool file::SwitchColors(BYTE* buffer, int size) {
 	int padding = (4 - (bytesPerRow % 4)) % 4;
 	int rowSize = bytesPerRow + padding;
 
-	for (int x = 0; x < width; x++) {
-		byte* rowPixel = pixelData + x * rowSize;
+	for (int y = 0; y < height; y++) {
+		byte* rowPixel = pixelData + y * rowSize;
 
-		for (int y = 0; y < height; y++) {
-			byte* bluePixel = &rowPixel[y * 3 + 0];
-			byte* greenPixel = &rowPixel[y * 3 + 1];
-			byte* redPixel = &rowPixel[y * 3 + 2];
+		for (int x = 0; x < width; x++) {
+			byte* bluePixel = &rowPixel[x * 3 + 0];
+			byte* greenPixel = &rowPixel[x * 3 + 1];
+			byte* redPixel = &rowPixel[x * 3 + 2];
 
 			byte blueTemp = *bluePixel;
 			byte greenTemp = *greenPixel;
@@ -429,24 +429,38 @@ bool file::HideMessage(BYTE* buffer, int size, const char* hiddenMessage) {
 	int padding = (4 - (bytesPerRow % 4)) % 4;
 	int rowSize = bytesPerRow + padding;
 
-	int msgBinaryLength = this->StrLength(this->GetBinaryMessage(hiddenMessage));
+	const char* binaryMessage = this->GetBinaryMessage(hiddenMessage);
+	int msgBinaryLength = this->StrLength(binaryMessage);
 
-	for (int x = 0; x < width; x++) {
-		byte* rowPixel = pixelData + x * rowSize;
+	int bitIndex = 0;
 
-		for (int y = 0; y < height; y++) {
-			byte* redPixel = &rowPixel[y * 3 + 2];
+	for (int y = 0; y < height && bitIndex < msgBinaryLength; y++) {
+		byte* rowPixel = pixelData + y * rowSize;
 
-			for (int bit = 0; bit < msgBinaryLength; bit++) {
+		for (int x = 0; x < width && bitIndex < msgBinaryLength; x++) {
+			byte* redPixel = &rowPixel[x * 3 + 2];
 
+			if (binaryMessage[bitIndex] == '1') {
+				*redPixel = (*redPixel | 0x01);
 			}
+			else {
+				*redPixel = (*redPixel & ~0x01);
+			}
+
+			bitIndex++;
 		}
+	}
+
+	delete[] binaryMessage;
+
+	if (bitIndex < msgBinaryLength) {
+		return false;
 	}
 
 	return true;
 }
 
-/* Fonction IsHideMessage */
+/* Fonction IsHiddenMessage */
 bool file::IsHiddenMessage(const char* dest, const char* hiddenMessage) {
 	FILE* srcFile = GetFile(dest);
 	if (srcFile == nullptr) {
@@ -485,6 +499,72 @@ bool file::IsHiddenMessage(const char* dest, const char* hiddenMessage) {
 
 	delete[] buffer;
 	return success;
+}
+
+bool file::ExtractMessage(const char* dest) {
+	FILE* srcFile = GetFile(dest);
+	if (srcFile == nullptr) {
+		std::cout << "Error : Cannot open image (ExtractMessage func)" << std::endl;
+		return false;
+	}
+
+	int size = GetSize(srcFile);
+	BYTE* buffer = GetBuffer(size);
+
+	if (fread(buffer, 1, size, srcFile) != size) {
+		std::cout << "Error: failed to read image." << std::endl;
+		fclose(srcFile);
+		delete[] buffer;
+		return false;
+	}
+	fclose(srcFile);
+
+	BITMAPFILEHEADER bfh;
+	memcpy(&bfh, buffer, sizeof(BITMAPFILEHEADER));
+
+	BITMAPINFOHEADER bih;
+	memcpy(&bih, buffer + sizeof(BITMAPFILEHEADER), sizeof(BITMAPINFOHEADER));
+
+	BYTE* pixelData = buffer + bfh.bfOffBits;
+	int width = bih.biWidth;
+	int height = abs(bih.biHeight);
+
+	int bytesPerRow = width * 3;
+	int padding = (4 - (bytesPerRow % 4)) % 4;
+	int rowSize = bytesPerRow + padding;
+
+	std::cout << "Message found: ";
+
+	char currentChar = 0;
+	int bitCount = 0;
+	bool messageFinished = false;
+
+	for (int y = 0; y < height && !messageFinished; y++) {
+		BYTE* rowPixel = pixelData + y * rowSize;
+
+		for (int x = 0; x < width && !messageFinished; x++) {
+			BYTE redPixel = rowPixel[x * 3 + 2];
+			int lsb = redPixel & 0x01;
+
+			currentChar = (currentChar << 1) | lsb;
+			bitCount++;
+
+			if (bitCount == 8) {
+				if (currentChar == '\0') {
+					messageFinished = true;
+				}
+				else {
+					std::cout << currentChar;
+				}
+				currentChar = 0;
+				bitCount = 0;
+			}
+		}
+	}
+	std::cout << std::endl;
+
+	delete[] buffer;
+	return true;
 }
 
 const char* file::GetBinaryMessage(const char* message) {
