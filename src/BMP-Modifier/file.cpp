@@ -2,6 +2,7 @@
 #include "file.h"
 #include <iostream>
 
+/* Fonction StrLenght */
 int file::StrLength(const char* str) {
 	int lenght = 0;
 	while (str[lenght] != '\0') {
@@ -283,11 +284,13 @@ FILE* file::CloneFile(FILE* srcFile, const char* name, BYTE* buffer, int size) {
 
 /* Fonction Resize */
 bool file::Resize(const char* dest, int newWidth, int newHeight) {
+	// Vérifie que la taille de l'image sois pas nul.
 	if (newWidth == 0 || newHeight == 0) {
 		return false;
 	}
 
-	FILE* srcFile = GetFile(dest);
+	FILE* srcFile = GetFile(dest); // Ont récupère et lit le fichier a resize.
+	// Vérifie si srcFile pointe bien sur un fichier.
 	if (srcFile == nullptr) {
 		std::cout << "Probleme lors de l'ouverture du fichier \n";
 		return false;
@@ -309,6 +312,7 @@ bool file::Resize(const char* dest, int newWidth, int newHeight) {
 		return false;
 	}
 
+	// Copie de buffer.
 	BYTE* src = buffer;
 	BITMAPFILEHEADER bfh;
 	memcpy(&bfh, src, sizeof(BITMAPFILEHEADER));
@@ -340,7 +344,12 @@ bool file::Resize(const char* dest, int newWidth, int newHeight) {
 	BITMAPINFOHEADER newBih = bih;
 
 	newBih.biWidth = newWidth;
-	newBih.biHeight = (bih.biHeight < 0) ? -newHeight : newHeight;
+	if (bih.biHeight < 0) {
+		newBih.biHeight = -newHeight;
+	}
+	else {
+		newBih.biHeight = newHeight;
+	}
 	newBih.biSizeImage = newPixelDataSize;
 	newBfh.bfSize = newTotalSize;
 	newBfh.bfOffBits = headerSize;
@@ -387,6 +396,7 @@ bool file::Resize(const char* dest, int newWidth, int newHeight) {
 	return true;
 }
 
+/* Fonction HideMessage */
 bool file::HideMessage(BYTE* buffer, int size, const char* hiddenMessage) {
 	if (!Load(buffer, size)) return false;
 
@@ -420,6 +430,7 @@ bool file::HideMessage(BYTE* buffer, int size, const char* hiddenMessage) {
 	return false;
 }
 
+/* Fonction IsHideMessage */
 bool file::IsHiddenMessage(const char* dest, const char* hiddenMessage) {
 	FILE* srcFile = GetFile(dest);
 	if (srcFile == nullptr) {
