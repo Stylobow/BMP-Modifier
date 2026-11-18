@@ -20,7 +20,9 @@ bool file::CheckFile(BYTE* buffer, int size) {
 
 /* Fonction CheckSize */
 bool file::CheckSize(int width, int height) {
-
+	if (width <= 0 || height <= 0) {
+		return false;
+	}
 	return true;
 }
 
