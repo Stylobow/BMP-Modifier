@@ -272,3 +272,18 @@ FILE* file::CloneFile(FILE* srcFile, const char* name, BYTE* buffer, int size) {
     std::cout << "Clone success! File saved as 'clone.bmp'." << std::endl;
     return destFile;
 }
+
+/* Fonction Resize */
+bool file::Resize(const char* dest, int newWidth, int newHeight) {
+    if (newWidth == 0 || newHeight == 0) {
+        return false;
+    }
+
+    FILE* srcFile = GetFile(dest);
+    if (srcFile == nullptr) {
+        std::cout << "Probleme lors de l'ouverture du fichier \n\n";
+        return false;
+    }
+
+    return true;
+}

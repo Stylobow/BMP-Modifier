@@ -13,5 +13,6 @@ public:
 	bool HasClonedFile(const char* dest);
 	bool SwitchColors(BYTE* buffer, int size);
 	bool HasSwitchedColors(const char* dest);
+	bool Resize(const char* dest, int newWidth, int newHeight);
 };
 
