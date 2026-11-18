@@ -81,7 +81,7 @@ int main(int argc, char* argv[])
 
 		std::cout << message << std::endl;
 
-		return 0;
+		return fm.IsHiddenMessage(file_path, message);
 	}
 
 	PRINT_ERROR(<< command << " is not a valid command");
