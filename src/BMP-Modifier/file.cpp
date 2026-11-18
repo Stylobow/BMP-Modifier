@@ -1,6 +1,5 @@
 #include "pch.h"
 #include "file.h"
-#include <iostream>
 
 /* Fonction StrLenght */
 int file::StrLength(const char* str) {
@@ -16,6 +15,15 @@ bool file::CheckFile(BYTE* buffer, int size) {
 	if (buffer == nullptr || size == 0) {
 		return false;
 	}
+	return true;
+}
+
+/* Fonction CheckSize */
+bool file::CheckSize(int width, int height) {
+	if (!CheckSize(width, height)) {
+		return false;
+	}
+
 	return true;
 }
 
@@ -86,7 +94,7 @@ bool file::Load(BYTE* buffer, int size) {
 	int height = abs(bih.biHeight);
 
 	// Vérifie si le fichier n'est pas nul.
-	if (width == 0 || height == 0) {
+	if (!CheckSize(width, height)) {
 		return false;
 	}
 
@@ -106,7 +114,7 @@ bool file::Read(BYTE* buffer, int size, BITMAPFILEHEADER bfh, BITMAPINFOHEADER b
 	int width = bih.biWidth;
 	int height = abs(bih.biHeight);
 
-	if (width == 0 || height == 0) {
+	if (!CheckSize(width, height)) {
 		return false;
 	}
 
