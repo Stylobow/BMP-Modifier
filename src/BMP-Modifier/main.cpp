@@ -21,6 +21,7 @@
     "|                                                                                                             |\n"\
     "|  -hide [File] [\"Message\"]                | Alias : hi                                                        |\n"\
     "|  -show [File]                            | Alias : s                                                        |\n"\
+	"|  -resize [File] [Width] [Height]         | Alias : r                                                        |\n"\
     "|                                                                                                             |\n"\
     "+-------------------------------------------------------------------------------------------------------------+\n" HELP_END
 
@@ -82,6 +83,11 @@ int main(int argc, char* argv[])
 		std::cout << message << std::endl;
 
 		return 0;
+	}
+	if (command == "resize" || command == "r") {
+		const char* file_path = argv[2];
+		int width = argv[3];
+		int height = argv[4];
 	}
 
 	PRINT_ERROR(<< command << " is not a valid command");
