@@ -19,6 +19,9 @@
     "|  -clone [File]                           | Alias : c                                                        |\n"\
     "|  -switchcolor [File]                     | Alias : sc                                                       |\n"\
     "|                                                                                                             |\n"\
+    "|  -hide [File] [\"Message\"]                | Alias : hi                                                        |\n"\
+    "|  -show [File]                            | Alias : s                                                        |\n"\
+    "|                                                                                                             |\n"\
     "+-------------------------------------------------------------------------------------------------------------+\n" HELP_END
 
 #define PRINT_ERROR( message ) { std::cout << STYLE_ERROR message "\n" SG_STYLE_RESET; return 1; }
@@ -50,8 +53,8 @@ int main(int argc, char* argv[])
 
 	std::string const& command = argv[1] + 1;
 
-	if (command == "help" || command == "h") return Help(argc, argv);
-	if (command == "clone" || command == "c") {
+	if (command == "help" || command == "h") return Help(argc, argv); // -help
+	if (command == "clone" || command == "c") { // -clone [File]
 		if (argc < 3)
 			PRINT_ERROR("File Directory is missing! Please use '" << prefix << "clone [File]'");
 
@@ -59,13 +62,26 @@ int main(int argc, char* argv[])
 
 		return fm.HasClonedFile(file_path);
 	}
-	if (command == "switchcolor" || command == "sc") {
+	if (command == "switchcolor" || command == "sc") { // -switchcolor [File]
 		if (argc < 3)
 			PRINT_ERROR("File Directory is missing! Please use '" << prefix << "switchcolor [File]'");
 
 		const char* file_path = argv[2];
 
 		return fm.HasSwitchedColors(file_path);
+	}
+	if (command == "hide" || command == "hi") { // -hide [File] ["Message"]
+		if (argc < 3)
+			PRINT_ERROR("File Directory is missing! Please use '" << prefix << "hide [File] [Message]'");
+		if (argc < 4)
+			PRINT_ERROR("Hidden Message is missing! Please use '" << prefix << "hide [File] [Message]'");
+
+		const char* file_path = argv[2];
+		const char* message = argv[3];
+
+		std::cout << message << std::endl;
+
+		return 0;
 	}
 
 	PRINT_ERROR(<< command << " is not a valid command");
