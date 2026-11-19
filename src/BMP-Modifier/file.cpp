@@ -1,69 +1,16 @@
 #include "pch.h"
 #include "file.h"
-
-/* Fonction StrLenght */
-int file::StrLength(const char* str) {
-	int lenght = 0;
-	while (str[lenght] != '\0') {
-		lenght++;
-	}
-	return lenght;
-}
-
-/* Fonction CheckFile */
-bool file::CheckFile(BYTE* buffer, int size) {
-	if (buffer == nullptr || size == 0) {
-		return false;
-	}
-	return true;
-}
-
-/* Fonction CheckSize */
-bool file::CheckSize(int width, int height) {
-	if (width <= 0 || height <= 0) {
-		return false;
-	}
-	return true;
-}
-
-/* Fonction GetFile */
-FILE* file::GetFile(const char* dest) {
-	FILE* file = nullptr;
-
-	errno_t err = fopen_s(&file, dest, "rb");
-
-	if (err != 0) {
-		std::cout << "Error code : " << err << std::endl;
-		return 0;
-	}
-
-	return file;
-}
-
-/* Fonction GetSize */
-const int file::GetSize(FILE* file) {
-	fseek(file, 0, SEEK_END);
-	const int size = ftell(file);
-	fseek(file, 0, SEEK_SET);
-
-	return size;
-}
-
-/* Fonction GetBuffer */
-BYTE* file::GetBuffer(const int size) {
-	BYTE* buffer = new BYTE[size];
-
-	return buffer;
-}
+#include "FileUtils.h"
 
 /* Fonction Load */
 bool file::Load(BYTE* buffer, int size) {
+	FileUtils fu;
 	// Initialisation des Header BMP.
 	BITMAPFILEHEADER bfh;
 	BITMAPINFOHEADER bih;
 
 	// Vérifie si le buffer ou la size est vide.
-	if (!CheckFile(buffer, size)) {
+	if (!fu.CheckFile(buffer, size)) {
 		return false;
 	}
 
@@ -93,7 +40,7 @@ bool file::Load(BYTE* buffer, int size) {
 	int height = abs(bih.biHeight);
 
 	// Vérifie si le fichier n'est pas nul.
-	if (!CheckSize(width, height)) {
+	if (!fu.CheckSize(width, height)) {
 		return false;
 	}
 
@@ -102,8 +49,9 @@ bool file::Load(BYTE* buffer, int size) {
 
 /* Fonction Read */
 bool file::Read(BYTE* buffer, int size, BITMAPFILEHEADER bfh, BITMAPINFOHEADER bih) {
+	FileUtils fu;
 	// Vérifie si le buffer ou la size est vide.
-	if (!CheckFile(buffer, size)) {
+	if (!fu.CheckFile(buffer, size)) {
 		return false;
 	}
 
@@ -113,7 +61,7 @@ bool file::Read(BYTE* buffer, int size, BITMAPFILEHEADER bfh, BITMAPINFOHEADER b
 	int width = bih.biWidth;
 	int height = abs(bih.biHeight);
 
-	if (!CheckSize(width, height)) {
+	if (!fu.CheckSize(width, height)) {
 		return false;
 	}
 
@@ -144,17 +92,18 @@ bool file::Read(BYTE* buffer, int size, BITMAPFILEHEADER bfh, BITMAPINFOHEADER b
 }
 
 bool file::HasSwitchedColors(const char* dest) {
-	FILE* srcFile = GetFile(dest);
+	FileUtils fu;
+	FILE* srcFile = fu.GetFile(dest);
 	if (srcFile == nullptr) {
-		std::cout << "An error occurred while opening the image." << std::endl;
-		return false;
+		PRINT_ERROR("An error occurred while opening the image.")
+			return false;
 	}
 
-	int size = GetSize(srcFile);
-	BYTE* buffer = GetBuffer(size);
+	int size = fu.GetSize(srcFile);
+	BYTE* buffer = fu.GetBuffer(size);
 
 	if (fread(buffer, 1, size, srcFile) != size) {
-		std::cout << "An error occurred while reading the image." << std::endl;
+		PRINT_ERROR("An error occurred while reading the image.")
 		fclose(srcFile);
 		delete[] buffer;
 		return false;
@@ -168,15 +117,15 @@ bool file::HasSwitchedColors(const char* dest) {
 		if (fopen_s(&newFile, "switched.bmp", "wb") == 0 && newFile != nullptr) {
 			fwrite(buffer, 1, size, newFile);
 			fclose(newFile);
-			std::cout << "The colors of the image have been successfully changed." << std::endl;
+			PRINT_SUCCESS("The colors of the image have been successfully changed.");
 		}
 		else {
-			std::cout << "An error occurred while saving the new image." << std::endl;
-			switchColor = false;
+			PRINT_ERROR("An error occurred while saving the new image.")
+				switchColor = false;
 		}
 	}
 	else {
-		std::cout << "An error occurred while changing the colors of the image." << std::endl;
+		PRINT_ERROR("An error occurred while changing the colors of the image.")
 	}
 
 	delete[] buffer;
@@ -233,14 +182,15 @@ bool file::SwitchColors(BYTE* buffer, int size) {
 
 /* HasClonedFile */
 bool file::HasClonedFile(const char* dest) {
-	FILE* srcFile = GetFile(dest);
+	FileUtils fu;
+	FILE* srcFile = fu.GetFile(dest);
 	if (srcFile == nullptr) {
-		std::cout << "Error: Source file not found or cannot be opened." << std::endl;
-		return false;
+		PRINT_ERROR("Error: Source file not found or cannot be opened.")
+			return false;
 	}
 
-	int size = GetSize(srcFile);
-	BYTE* buffer = GetBuffer(size);
+	int size = fu.GetSize(srcFile);
+	BYTE* buffer = fu.GetBuffer(size);
 
 	bool success = this->CloneFile(srcFile, dest, buffer, size);
 
@@ -248,8 +198,8 @@ bool file::HasClonedFile(const char* dest) {
 	delete[] buffer;
 
 	if (!success) {
-		std::cout << "Error while cloning file." << std::endl;
-		return false;
+		PRINT_ERROR("Error while cloning file.")
+			return false;
 	}
 
 	return true;
@@ -257,65 +207,68 @@ bool file::HasClonedFile(const char* dest) {
 
 /* Fonction CloneFile */
 FILE* file::CloneFile(FILE* srcFile, const char* name, BYTE* buffer, int size) {
-	if (srcFile == nullptr || !CheckFile(buffer, size)) {
+	FileUtils fu;
+	if (srcFile == nullptr || !fu.CheckFile(buffer, size)) {
 		return nullptr;
 	}
 
 	if (fread(buffer, 1, size, srcFile) != size) {
-		std::cout << "Error reading source file." << std::endl;
-		return nullptr;
+		PRINT_ERROR("Error reading source file.")
+			return nullptr;
 	}
 
 	if (!file::Load(buffer, size)) {
-		std::cout << "Error reading the image. Check its format and color depth, which must be 24." << std::endl;
-		return nullptr;
+		PRINT_ERROR("Error reading the image. Check its format and color depth, which must be 24.")
+			return nullptr;
 	}
 
 	FILE* destFile = nullptr;
 	errno_t err = fopen_s(&destFile, "clone.bmp", "wb");
 	if (err != 0 || destFile == nullptr) {
-		std::cout << "Error, Failed to clone file, error code : " << err << std::endl;
-		return nullptr;
+		PRINT_ERROR("Error, Failed to clone file, error code : " << err << )
+			return nullptr;
 	}
 
 	if (fwrite(buffer, 1, size, destFile) != size) {
-		std::cout << "Error: Failed to write complete file." << std::endl;
-		fclose(destFile);
+		PRINT_ERROR("Error: Failed to write complete file.")
+			fclose(destFile);
 		return nullptr;
 	}
 
 	fclose(destFile);
-	std::cout << "Clone success! File saved as 'clone.bmp'." << std::endl;
-	return destFile;
+	PRINT_SUCCESS("Clone success! File saved as 'clone.bmp'.")
+		return destFile;
 }
 
 /* Fonction Resize */
 bool file::Resize(const char* dest, int newWidth, int newHeight) {
+	FileUtils fu;
 	// Vérifie que la taille de l'image sois pas nul.
-	if (newWidth == 0 || newHeight == 0) {
-		return false;
+	if (newWidth <= 0 || newHeight <= 0) {
+		PRINT_ERROR("Width and Height cannot be lower than 1")
+			return false;
 	}
 
-	FILE* srcFile = GetFile(dest); // Ont récupère et lit le fichier a resize.
+	FILE* srcFile = fu.GetFile(dest); // Ont récupère et lit le fichier a resize.
 	// Vérifie si srcFile pointe bien sur un fichier.
 	if (srcFile == nullptr) {
-		std::cout << "Probleme lors de l'ouverture du fichier \n";
-		return false;
+		PRINT_ERROR("Error while opening file\n")
+			return false;
 	}
 
-	int size = GetSize(srcFile);
-	BYTE* buffer = GetBuffer(size);
+	int size = fu.GetSize(srcFile);
+	BYTE* buffer = fu.GetBuffer(size);
 
 	if (fread(buffer, 1, size, srcFile) != size) {
-		std::cout << "an error ocurred\n";
-		delete[] buffer;
+		PRINT_ERROR("An error ocurred\n")
+			delete[] buffer;
 		return false;
 	}
 	fclose(srcFile);
 
 	if (!Load(buffer, size)) {
-		std::cout << "an error ocurred\n";
-		delete[] buffer;
+		PRINT_ERROR("An error ocurred\n")
+			delete[] buffer;
 		return false;
 	}
 
@@ -389,11 +342,11 @@ bool file::Resize(const char* dest, int newWidth, int newHeight) {
 	if (err == 0 && newFile != nullptr) {
 		fwrite(newBuffer, 1, newTotalSize, newFile);
 		fclose(newFile);
-		std::cout << "The image has been successfully resized and saved as 'resized.bmp'." << std::endl;
+		PRINT_SUCCESS("The image has been successfully resized and saved as 'resized.bmp'.")
 	}
 	else {
-		std::cout << "An error occurred while saving the new resized image." << std::endl;
-		delete[] buffer;
+		PRINT_ERROR("An error occurred while saving the new resized image.")
+			delete[] buffer;
 		delete[] newBuffer;
 		return false;
 	}
@@ -405,6 +358,7 @@ bool file::Resize(const char* dest, int newWidth, int newHeight) {
 
 /* Fonction HideMessage */
 bool file::HideMessage(BYTE* buffer, int size, const char* hiddenMessage) {
+	FileUtils fu;
 	if (!Load(buffer, size)) return false;
 
 	byte* src = buffer;
@@ -430,7 +384,7 @@ bool file::HideMessage(BYTE* buffer, int size, const char* hiddenMessage) {
 	int rowSize = bytesPerRow + padding;
 
 	const char* binaryMessage = this->GetBinaryMessage(hiddenMessage);
-	int msgBinaryLength = this->StrLength(binaryMessage);
+	int msgBinaryLength = fu.StrLength(binaryMessage);
 
 	int bitIndex = 0;
 
@@ -462,18 +416,19 @@ bool file::HideMessage(BYTE* buffer, int size, const char* hiddenMessage) {
 
 /* Fonction IsHiddenMessage */
 bool file::IsHiddenMessage(const char* dest, const char* hiddenMessage) {
-	FILE* srcFile = GetFile(dest);
+	FileUtils fu;
+	FILE* srcFile = fu.GetFile(dest);
 	if (srcFile == nullptr) {
-		std::cout << "Error: Cannot open source image." << std::endl;
-		return false;
+		PRINT_ERROR("Error: Cannot open source image.")
+			return false;
 	}
 
-	int size = GetSize(srcFile);
-	BYTE* buffer = GetBuffer(size);
+	int size = fu.GetSize(srcFile);
+	BYTE* buffer = fu.GetBuffer(size);
 
 	if (fread(buffer, 1, size, srcFile) != size) {
-		std::cout << "Error: Failed to read image." << std::endl;
-		fclose(srcFile);
+		PRINT_ERROR("Error: Failed to read image.")
+			fclose(srcFile);
 		delete[] buffer;
 		return false;
 	}
@@ -486,15 +441,15 @@ bool file::IsHiddenMessage(const char* dest, const char* hiddenMessage) {
 		if (fopen_s(&newFile, "stego.bmp", "wb") == 0 && newFile != nullptr) {
 			fwrite(buffer, 1, size, newFile);
 			fclose(newFile);
-			std::cout << "Message embedded successfully → 'stego.bmp'" << std::endl;
+			PRINT_SUCCESS("\nMessage embedded successfully: 'stego.bmp'")
 		}
 		else {
-			std::cout << "Error: Failed to save stego image." << std::endl;
-			success = false;
+			PRINT_ERROR("Error: Failed to save stego image.")
+				success = false;
 		}
 	}
 	else {
-		std::cout << "Error: Failed to embed message." << std::endl;
+		PRINT_ERROR("Error: Failed to embed message.")
 	}
 
 	delete[] buffer;
@@ -502,18 +457,19 @@ bool file::IsHiddenMessage(const char* dest, const char* hiddenMessage) {
 }
 
 bool file::ExtractMessage(const char* dest) {
-	FILE* srcFile = GetFile(dest);
+	FileUtils fu;
+	FILE* srcFile = fu.GetFile(dest);
 	if (srcFile == nullptr) {
-		std::cout << "Error : Cannot open image (ExtractMessage func)" << std::endl;
-		return false;
+		PRINT_ERROR("Error : Cannot open image (ExtractMessage func)")
+			return false;
 	}
 
-	int size = GetSize(srcFile);
-	BYTE* buffer = GetBuffer(size);
+	int size = fu.GetSize(srcFile);
+	BYTE* buffer = fu.GetBuffer(size);
 
 	if (fread(buffer, 1, size, srcFile) != size) {
-		std::cout << "Error: failed to read image." << std::endl;
-		fclose(srcFile);
+		PRINT_ERROR("Error: failed to read image.")
+			fclose(srcFile);
 		delete[] buffer;
 		return false;
 	}
@@ -568,7 +524,8 @@ bool file::ExtractMessage(const char* dest) {
 }
 
 const char* file::GetBinaryMessage(const char* message) {
-	int messageLength = this->StrLength(message);
+	FileUtils fu;
+	int messageLength = fu.StrLength(message);
 
 	int totalBits = (messageLength + 1) * 8;
 
@@ -584,8 +541,8 @@ const char* file::GetBinaryMessage(const char* message) {
 	}
 
 	result[index] = '\0';
-	std::cout << "The message was put into binary." << std::endl;
-	std::cout << "Binary message: [" << result << "]" << std::endl;
+	PRINT_SUCCESS("The message was put into binary.")
+		PRINT_SUCCESS("Binary message: [" << result << "]")
 
-	return result;
+		return result;
 }

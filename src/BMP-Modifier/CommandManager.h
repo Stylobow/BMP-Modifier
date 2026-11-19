@@ -2,11 +2,6 @@
 
 #define PREFIX '-'
 
-#define SG_STYLE( style ) "\033[" style "m"
-#define SG_STYLE_RESET      SG_STYLE( "0" )
-#define STYLE_ERROR      SG_STYLE( "31" )
-#define STYLE_SUCCESS      SG_STYLE( "42" )
-
 #define HELP_END "\n" \
     "[]  Required Argument\n"
 
@@ -23,9 +18,6 @@
 	"|  -resize [File] [Width] [Height]         | Alias : r                                                        |\n"\
     "|                                                                                                             |\n"\
     "+-------------------------------------------------------------------------------------------------------------+\n" HELP_END
-
-#define PRINT_ERROR( message ) { std::cout << STYLE_ERROR message "\n" SG_STYLE_RESET; return 1; }
-#define PRINT_SUCCESS( message ) { std::cout << STYLE_SUCCESS message "\n" SG_STYLE_RESET; return 1; }
 
 class CommandManager
 {
