@@ -1,5 +1,6 @@
 #include "pch.h"
 #include "CommandManager.h"
+#include "Binary.h"
 #include "file.h"
 
 int CommandManager::Help(int argc, char* argv[]) {
@@ -45,13 +46,13 @@ int CommandManager::Hide(int argc, char* argv[]) {
 }
 
 int CommandManager::Show(int argc, char* argv[]) {
-	file fm;
+	Binary binary;
 	if (argc < 3)
 		RETURN_ERROR("File Directory is missing! Please use '" << PREFIX << "show [File]'");
 
 	const char* file_path = argv[2];
 
-	return fm.ExtractMessage(file_path);
+	return binary.ExtractMessage(file_path);
 }
 
 int CommandManager::Resize(int argc, char* argv[]) {
