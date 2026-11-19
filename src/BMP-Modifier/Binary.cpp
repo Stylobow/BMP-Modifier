@@ -30,21 +30,26 @@ bool Binary::HideMessage(BYTE* buffer, int size, const char* hiddenMessage) {
 	int padding = (4 - (bytesPerRow % 4)) % 4;
 	int rowSize = bytesPerRow + padding;
 
+	// Convertit le message en binaire
 	const char* binaryMessage = this->GetBinaryMessage(hiddenMessage);
 	int msgBinaryLength = fu.StrLength(binaryMessage);
 
 	int bitIndex = 0;
 
+	// On parcout l'image sur toute la hauteur tant que il y a encore le message a cacher
 	for (int y = 0; y < height && bitIndex < msgBinaryLength; y++) {
 		byte* rowPixel = pixelData + y * rowSize;
-
+		
+		//Même chose pour l'axe x, la la longueur
 		for (int x = 0; x < width && bitIndex < msgBinaryLength; x++) {
 			byte* redPixel = &rowPixel[x * 3 + 2];
 
 			if (binaryMessage[bitIndex] == '1') {
+				// 0x01 = 00000001 en binaire -> avec "|" ça force le dernier bit à 1
 				*redPixel = (*redPixel | 0x01);
 			}
 			else {
+				// ~0x01 = 11111110 en binaire -> avec "&" ça force le dernier bit à 0
 				*redPixel = (*redPixel & ~0x01);
 			}
 
@@ -54,7 +59,7 @@ bool Binary::HideMessage(BYTE* buffer, int size, const char* hiddenMessage) {
 
 	delete[] binaryMessage;
 
-	if (bitIndex < msgBinaryLength) {
+	if (bitIndex < msgBinaryLength) { // Sécurité si l'image est trop petite pour le message en entier
 		return false;
 	}
 
@@ -105,18 +110,20 @@ bool Binary::ExtractMessage(const char* dest) {
 
 		for (int x = 0; x < width && !messageFinished; x++) {
 			BYTE redPixel = rowPixel[x * 3 + 2];
-			int lsb = redPixel & 0x01;
+			int lsb = redPixel & 0x01; // On récupère le LSB du pixel rouge
 
+			// Décale les bits déjà là vers la gauche pour faire de la place, puis ajoute le nouveau bit à droite
 			currentChar = (currentChar << 1) | lsb;
 			bitCount++;
 
-			if (bitCount == 8) {
-				if (currentChar == '\0') {
+			if (bitCount == 8) { // Quand on a un caractère complet
+				if (currentChar == '\0') { // La fin du message
 					messageFinished = true;
 				}
 				else {
 					std::cout << currentChar;
 				}
+				// Remet à zéro pour lire le prochain caractère.
 				currentChar = 0;
 				bitCount = 0;
 			}
@@ -132,20 +139,23 @@ const char* Binary::GetBinaryMessage(const char* message) {
 	FileUtils fu;
 	int messageLength = fu.StrLength(message);
 
+	// + 1 pour inclure le '\0' à la toute fin du message et * 8 car 1 caractère = 8 bits
 	int totalBits = (messageLength + 1) * 8;
 
-	char* result = new char[totalBits + 1];
+	char* result = new char[totalBits + 1]; // + 1 pour le '\0'
 	int index = 0;
 
 	for (int i = 0; i <= messageLength; i++) {
 		char character = message[i];
 
+		// On part du bit 7, le plus à gauche vers le bit 0, le plus à droite
 		for (int bit = 7; bit >= 0; bit--) {
+			// Décale le bit voulu tout à droite, garde juste ce bit (& 1), et ajoute 0 pour avoir 0 ou 1
 			result[index++] = ((character >> bit) & 1) + '0';
 		}
 	}
 
-	result[index] = '\0';
+	result[index] = '\0'; // Fin du message
 	PRINT_SUCCESS("The message was put into binary.")
 	PRINT_SUCCESS("Binary message: [" << result << "]")
 
