@@ -96,15 +96,13 @@ bool file::HasSwitchedColors(const char* dest) {
 	FileUtils fu;
 	FILE* srcFile = fu.GetFile(dest);
 	if (srcFile == nullptr) {
-		PRINT_ERROR("An error occurred while opening the image.")
-			return false;
+		return false;
 	}
 
 	int size = fu.GetSize(srcFile);
 	BYTE* buffer = fu.GetBuffer(size);
 
 	if (fread(buffer, 1, size, srcFile) != size) {
-		PRINT_ERROR("An error occurred while reading the image.")
 		fclose(srcFile);
 		delete[] buffer;
 		return false;
@@ -121,8 +119,7 @@ bool file::HasSwitchedColors(const char* dest) {
 			PRINT_SUCCESS("The colors of the image have been successfully changed.");
 		}
 		else {
-			PRINT_ERROR("An error occurred while saving the new image.")
-				switchColor = false;
+			switchColor = false;
 		}
 	}
 	else {
@@ -185,10 +182,8 @@ bool file::SwitchColors(BYTE* buffer, int size) {
 bool file::HasClonedFile(const char* dest) {
 	FileUtils fu;
 	FILE* srcFile = fu.GetFile(dest);
-	if (srcFile == nullptr) {
-		PRINT_ERROR("Error: Source file not found or cannot be opened.")
-			return false;
-	}
+	if (srcFile == nullptr)
+		return false;
 
 	int size = fu.GetSize(srcFile);
 	BYTE* buffer = fu.GetBuffer(size);
@@ -199,8 +194,8 @@ bool file::HasClonedFile(const char* dest) {
 	delete[] buffer;
 
 	if (!success) {
-		PRINT_ERROR("Error while cloning file.")
-			return false;
+		PRINT_ERROR("Error while cloning file.");
+		return false;
 	}
 
 	return true;
@@ -213,14 +208,12 @@ FILE* file::CloneFile(FILE* srcFile, const char* name, BYTE* buffer, int size) {
 		return nullptr;
 	}
 
-	if (fread(buffer, 1, size, srcFile) != size) {
-		PRINT_ERROR("Error reading source file.")
-			return nullptr;
-	}
+	if (fread(buffer, 1, size, srcFile) != size)
+		return nullptr;
 
 	if (!file::Load(buffer, size)) {
-		PRINT_ERROR("Error reading the image. Check its format and color depth, which must be 24.")
-			return nullptr;
+		PRINT_ERROR("Error reading the image. Check its format and color depth, which must be 24.");
+		return nullptr;
 	}
 
 	FILE* destFile = nullptr;
@@ -231,14 +224,13 @@ FILE* file::CloneFile(FILE* srcFile, const char* name, BYTE* buffer, int size) {
 	}
 
 	if (fwrite(buffer, 1, size, destFile) != size) {
-		PRINT_ERROR("Error: Failed to write complete file.")
-			fclose(destFile);
+		fclose(destFile);
 		return nullptr;
 	}
 
 	fclose(destFile);
-	PRINT_SUCCESS("Clone success! File saved as 'clone.bmp'.")
-		return destFile;
+	PRINT_SUCCESS("Clone success! File saved as 'clone.bmp'.");
+	return destFile;
 }
 
 /* Fonction Resize */
@@ -246,8 +238,8 @@ bool file::Resize(const char* dest, int newWidth, int newHeight) {
 	FileUtils fu;
 	// Vérifie que la taille de l'image sois pas nul.
 	if (newWidth <= 0 || newHeight <= 0) {
-		PRINT_ERROR("Width and Height cannot be lower than 1")
-			return false;
+		PRINT_ERROR("Width and Height cannot be lower than 1");
+		return false;
 	}
 
 	FILE* srcFile = fu.GetFile(dest); // Ont récupère et lit le fichier a resize.
@@ -261,15 +253,13 @@ bool file::Resize(const char* dest, int newWidth, int newHeight) {
 	BYTE* buffer = fu.GetBuffer(size);
 
 	if (fread(buffer, 1, size, srcFile) != size) {
-		PRINT_ERROR("An error ocurred\n")
-			delete[] buffer;
+		delete[] buffer;
 		return false;
 	}
 	fclose(srcFile);
 
 	if (!Load(buffer, size)) {
-		PRINT_ERROR("An error ocurred\n")
-			delete[] buffer;
+		delete[] buffer;
 		return false;
 	}
 
@@ -346,7 +336,6 @@ bool file::Resize(const char* dest, int newWidth, int newHeight) {
 		PRINT_SUCCESS("The image has been successfully resized and saved as 'resized.bmp'.")
 	}
 	else {
-		PRINT_ERROR("An error occurred while saving the new resized image.")
 		delete[] buffer;
 		delete[] newBuffer;
 		return false;
@@ -371,8 +360,7 @@ bool file::IsHiddenMessage(const char* dest, const char* hiddenMessage) {
 	BYTE* buffer = fu.GetBuffer(size);
 
 	if (fread(buffer, 1, size, srcFile) != size) {
-		PRINT_ERROR("Error: Failed to read image.")
-			fclose(srcFile);
+		fclose(srcFile);
 		delete[] buffer;
 		return false;
 	}
@@ -385,17 +373,15 @@ bool file::IsHiddenMessage(const char* dest, const char* hiddenMessage) {
 		if (fopen_s(&newFile, "stego.bmp", "wb") == 0 && newFile != nullptr) {
 			fwrite(buffer, 1, size, newFile);
 			fclose(newFile);
-			PRINT_SUCCESS("\nMessage embedded successfully: 'stego.bmp'")
+			PRINT_SUCCESS("Message embedded successfully: 'stego.bmp'")
+				return success;
 		}
 		else {
-			PRINT_ERROR("Error: Failed to save stego image.")
-				success = false;
+			success = false;
 		}
 	}
-	else {
-		PRINT_ERROR("Error: Failed to embed message.")
-	}
 
+	PRINT_ERROR("Error: Failed to embed message.");
 	delete[] buffer;
 	return success;
 }

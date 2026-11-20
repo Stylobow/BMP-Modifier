@@ -72,7 +72,7 @@ int CommandManager::Resize(int argc, char* argv[]) {
 }
 
 int CommandManager::Start(int argc, char* argv[]) {
-	std::cout << "-=-=- Projet BMP-Modifier (x64 Debug Mode) -=-=-" << std::endl << std::endl;
+	std::cout << "-=-=- Projet BMP-Modifier -=-=-" << std::endl << std::endl;
 
 	if (argc == 1) {
 		RETURN_ERROR("Not enough arguments")

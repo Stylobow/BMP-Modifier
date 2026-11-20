@@ -69,16 +69,13 @@ bool Binary::HideMessage(BYTE* buffer, int size, const char* hiddenMessage) {
 bool Binary::ExtractMessage(const char* dest) {
 	FileUtils fu;
 	FILE* srcFile = fu.GetFile(dest);
-	if (srcFile == nullptr) {
-		PRINT_ERROR("Error : Cannot open image (ExtractMessage func)")
+	if (srcFile == nullptr)
 		return false;
-	}
 
 	int size = fu.GetSize(srcFile);
 	BYTE* buffer = fu.GetBuffer(size);
 
 	if (fread(buffer, 1, size, srcFile) != size) {
-		PRINT_ERROR("Error: failed to read image.")
 		fclose(srcFile);
 		delete[] buffer;
 		return false;
@@ -156,8 +153,6 @@ const char* Binary::GetBinaryMessage(const char* message) {
 	}
 
 	result[index] = '\0'; // Fin du message
-	PRINT_SUCCESS("The message was put into binary.")
-	PRINT_SUCCESS("Binary message: [" << result << "]")
 
 	return result;
 }
